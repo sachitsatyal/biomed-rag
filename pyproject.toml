@@ -1,0 +1,35 @@
+[project]
+name = "biomed-rag"
+version = "0.1.0"
+description = "FIrst Version of Biomed-RAG"
+readme = "README.md"
+authors = [
+    { name = "Sachit Satyal", email = "18736789+sachitsatyal@users.noreply.github.com" }
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+license = "Apache-2.0"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.9",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --cov=biomed_rag"
