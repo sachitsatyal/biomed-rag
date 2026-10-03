@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<PubmedArticleSet>
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID Version="1">111</PMID>
+      <Article>
+        <Journal>
+          <JournalIssue><PubDate><Year>2024</Year></PubDate></JournalIssue>
+          <Title>Test Journal</Title>
+        </Journal>
+        <ArticleTitle>Tau and <i>APOE</i> in AD.</ArticleTitle>
+        <Abstract>
+          <AbstractText Label="BACKGROUND">Tau matters.</AbstractText>
+          <AbstractText Label="RESULTS">p &lt; 10<sup>-8</sup> was found.</AbstractText>
+          <CopyrightInformation>Copyright text.</CopyrightInformation>
+        </Abstract>
+        <AuthorList>
+          <Author><LastName>Smith</LastName><ForeName>Jane</ForeName></Author>
+          <Author><CollectiveName>Big Consortium</CollectiveName></Author>
+        </AuthorList>
+        <PublicationTypeList>
+          <PublicationType>Journal Article</PublicationType>
+          <PublicationType>Retracted Publication</PublicationType>
+        </PublicationTypeList>
+      </Article>
+      <MeshHeadingList>
+        <MeshHeading><DescriptorName>Alzheimer Disease</DescriptorName></MeshHeading>
+        <MeshHeading><DescriptorName>Mice</DescriptorName></MeshHeading>
+      </MeshHeadingList>
+      <InvestigatorList>
+        <Investigator><LastName>Investigator</LastName><ForeName>Ian</ForeName></Investigator>
+      </InvestigatorList>
+    </MedlineCitation>
+    <PubmedData>
+      <ArticleIdList>
+        <ArticleId IdType="pubmed">111</ArticleId>
+        <ArticleId IdType="doi">10.1000/test</ArticleId>
+        <ArticleId IdType="pmc">PMC111</ArticleId>
+      </ArticleIdList>
+      <ReferenceList>
+        <Reference>
+          <Citation>Some cited paper.</Citation>
+          <ArticleIdList>
+            <ArticleId IdType="pmc">PMC999</ArticleId>
+            <ArticleId IdType="pubmed">999</ArticleId>
+          </ArticleIdList>
+        </Reference>
+      </ReferenceList>
+    </PubmedData>
+  </PubmedArticle>
+
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID Version="1">222</PMID>
+      <Article>
+        <Journal>
+          <JournalIssue><PubDate><Year>2020</Year></PubDate></JournalIssue>
+          <Title>Test Journal</Title>
+        </Journal>
+        <ArticleTitle>A paper with no abstract.</ArticleTitle>
+      </Article>
+    </MedlineCitation>
+    <PubmedData>
+      <ArticleIdList><ArticleId IdType="pubmed">222</ArticleId></ArticleIdList>
+    </PubmedData>
+  </PubmedArticle>
+
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID Version="1">333</PMID>
+      <Article>
+        <Journal>
+          <JournalIssue><PubDate><MedlineDate>2019 Nov-Dec</MedlineDate></PubDate></JournalIssue>
+          <Title>Other Journal</Title>
+        </Journal>
+        <ArticleTitle>Plain abstract paper.</ArticleTitle>
+        <Abstract><AbstractText>Unlabeled text.</AbstractText></Abstract>
+      </Article>
+    </MedlineCitation>
+    <PubmedData>
+      <ArticleIdList><ArticleId IdType="pubmed">333</ArticleId></ArticleIdList>
+    </PubmedData>
+  </PubmedArticle>
+</PubmedArticleSet>
