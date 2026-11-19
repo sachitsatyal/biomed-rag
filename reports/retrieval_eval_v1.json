@@ -1,0 +1,40 @@
+{
+  "n_questions": 24,
+  "labels": "golden/labels_v1.csv",
+  "chunks": "data/processed/chunks_abstract.parquet",
+  "dense_index": "data/indexes/dense_bge-small_abstract",
+  "overall": {
+    "bm25": {
+      "recall@5": 0.3497,
+      "recall@10": 0.5628,
+      "mrr": 0.7405
+    },
+    "dense": {
+      "recall@5": 0.4783,
+      "recall@10": 0.7943,
+      "mrr": 0.8958
+    },
+    "hybrid": {
+      "recall@5": 0.4357,
+      "recall@10": 0.7295,
+      "mrr": 0.8514
+    }
+  },
+  "recall@10_by_type": {
+    "exact": {
+      "bm25": 0.7122,
+      "dense": 0.883,
+      "hybrid": 0.8528
+    },
+    "paraphrase": {
+      "bm25": 0.4421,
+      "dense": 0.698,
+      "hybrid": 0.5961
+    },
+    "contested": {
+      "bm25": 0.5341,
+      "dense": 0.8018,
+      "hybrid": 0.7396
+    }
+  }
+}
