@@ -112,3 +112,47 @@ def make_llm(provider: str, model: str | None = None, reasoning_effort: str | No
     return OpenAICompatibleLLM(
         model or preset["model"], preset["base_url"], api_key, reasoning_effort=reasoning_effort
     )
+
+
+RETRYABLE_ERRORS = {
+    "RateLimitError",  # 429: too many requests
+    "InternalServerError",  # 5xx, e.g. 503 overloaded
+    "APITimeoutError",
+    "APIConnectionError",
+}
+
+
+class RetryingLLM:
+    """Wrap any LLM: on temporary errors, wait (exponential backoff + jitter) and try again."""
+
+    def __init__(
+        self,
+        llm: LLM,
+        max_attempts: int = 4,
+        base_delay: float = 10.0,
+        sleep: Any = None,
+    ) -> None:
+        import time
+
+        self.llm = llm
+        self.max_attempts = max_attempts
+        self.base_delay = base_delay
+        self.sleep = sleep or time.sleep
+        self.retries = 0
+
+    @property
+    def model(self) -> str:
+        return getattr(self.llm, "model", "")
+
+    def complete(self, system: str, user: str) -> LLMReply:
+        import random
+
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                return self.llm.complete(system, user)
+            except Exception as error:
+                if type(error).__name__ not in RETRYABLE_ERRORS or attempt == self.max_attempts:
+                    raise
+                self.retries += 1
+                self.sleep(self.base_delay * 2 ** (attempt - 1) * (1 + 0.25 * random.random()))
+        raise RuntimeError("unreachable")

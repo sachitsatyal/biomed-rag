@@ -80,6 +80,10 @@ class AnswerGenerator:
 
     def answer(self, question: str) -> GeneratedAnswer:
         evidence = self.retriever.search(question, k=self.k)
+        return self.answer_from_evidence(question, evidence)
+
+    def answer_from_evidence(self, question: str, evidence: list[SearchResult]) -> GeneratedAnswer:
+        """Write a cited answer from evidence gathered elsewhere (e.g. by the agent)."""
         user = f"Question: {question}\n\n{format_evidence(evidence)}"
         tokens_in = tokens_out = 0
         for attempt in range(self.retries + 1):
