@@ -23,3 +23,14 @@ is "pooled recall". This is a development set, not the research benchmark.
 `labels_v1.csv`: 414 pooled rows, 190 marked relevant (3 to 13 per question). Labeled by Claude
 (the `labeled_by` column) from title and abstract start; a human spot-check is pending. Treat
 these as development labels, not expert ground truth.
+
+## Labels v2
+
+`labels_v2.csv` = v1 plus 66 papers that the rerank systems placed in a top 10 but no v1 system had
+retrieved (17 relevant). Same rules, labeled by Claude. Use v2 for any comparison that includes
+rerankers; `reports/retrieval_eval_v1.json` was computed on v1.
+
+## Labels v3
+
+`labels_v3.csv` = v2 plus 41 papers placed in a top 10 by the MedCPT reranker (15 relevant).
+Results in `reports/retrieval_eval_v3*.json` use v3.

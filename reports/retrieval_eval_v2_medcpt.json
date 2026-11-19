@@ -1,0 +1,67 @@
+{
+  "n_questions": 24,
+  "labels": "golden/labels_v2.csv",
+  "chunks": "data/processed/chunks_abstract.parquet",
+  "dense_index": "data/indexes/dense_bge-small_abstract",
+  "reranker": "ncbi/MedCPT-Cross-Encoder",
+  "overall": {
+    "bm25": {
+      "recall@5": 0.3315,
+      "recall@10": 0.5294,
+      "mrr": 0.7405,
+      "judged@10": 1.0,
+      "ms_per_query": 5.4142
+    },
+    "dense": {
+      "recall@5": 0.4514,
+      "recall@10": 0.7433,
+      "mrr": 0.8958,
+      "judged@10": 1.0,
+      "ms_per_query": 34.7399
+    },
+    "hybrid": {
+      "recall@5": 0.4093,
+      "recall@10": 0.6844,
+      "mrr": 0.8514,
+      "judged@10": 1.0,
+      "ms_per_query": 41.498
+    },
+    "dense+rerank": {
+      "recall@5": 0.467,
+      "recall@10": 0.6992,
+      "mrr": 0.9018,
+      "judged@10": 0.875,
+      "ms_per_query": 9688.3454
+    },
+    "hybrid+rerank": {
+      "recall@5": 0.4525,
+      "recall@10": 0.7244,
+      "mrr": 0.901,
+      "judged@10": 0.9125,
+      "ms_per_query": 10397.2181
+    }
+  },
+  "recall@10_by_type": {
+    "exact": {
+      "bm25": 0.6696,
+      "dense": 0.8341,
+      "hybrid": 0.808,
+      "dense+rerank": 0.7664,
+      "hybrid+rerank": 0.7894
+    },
+    "paraphrase": {
+      "bm25": 0.4178,
+      "dense": 0.6524,
+      "hybrid": 0.5559,
+      "dense+rerank": 0.6481,
+      "hybrid+rerank": 0.6778
+    },
+    "contested": {
+      "bm25": 0.5009,
+      "dense": 0.7435,
+      "hybrid": 0.6893,
+      "dense+rerank": 0.683,
+      "hybrid+rerank": 0.706
+    }
+  }
+}

@@ -1,6 +1,11 @@
 import pytest
 
-from biomed_rag.evaluation.metrics import ranked_pmids, recall_at_k, reciprocal_rank
+from biomed_rag.evaluation.metrics import (
+    judged_at_k,
+    ranked_pmids,
+    recall_at_k,
+    reciprocal_rank,
+)
 from biomed_rag.retrieval.base import SearchResult
 
 
@@ -22,3 +27,8 @@ def test_recall_needs_relevant_papers():
 def test_reciprocal_rank_uses_first_hit():
     assert reciprocal_rank(["a", "b", "c"], {"c", "b"}) == pytest.approx(1 / 2)
     assert reciprocal_rank(["a", "b"], {"z"}) == 0.0
+
+
+def test_judged_at_k_counts_labeled_papers():
+    assert judged_at_k(["a", "b", "c", "d"], {"a", "c"}, k=4) == 0.5
+    assert judged_at_k([], {"a"}, k=10) == 0.0
