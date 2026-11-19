@@ -44,3 +44,32 @@ def cited_relevance(cited: list[str], relevant: set[str], judged: set[str]) -> t
     if not labeled:
         return float("nan"), unlabeled
     return sum(pmid in relevant for pmid in labeled) / len(labeled), unlabeled
+
+
+def make_negative_controls(answers: list[dict], seed: int = 0) -> list[dict]:
+    """Pair every claim with a passage from a DIFFERENT question: a claim it cannot support.
+
+    A trustworthy judge should call almost all of these "unsupported".
+    """
+    import random
+
+    rng = random.Random(seed)
+    usable = [a for a in answers if "error" not in a and a.get("evidence")]
+    controls = []
+    for a in usable:
+        others = [b for b in usable if b["qid"] != a["qid"]]
+        if not others:
+            continue
+        for claim in a.get("claims", []):
+            donor = rng.choice(others)
+            passage = rng.choice(donor["evidence"])
+            controls.append(
+                {
+                    "qid": a["qid"],
+                    "claim": claim["text"],
+                    "donor_qid": donor["qid"],
+                    "pmid": passage["pmid"],
+                    "text": passage["text"],
+                }
+            )
+    return controls
