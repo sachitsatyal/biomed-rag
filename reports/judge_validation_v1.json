@@ -1,0 +1,13 @@
+{
+  "judge_model": "gemini-3.1-flash-lite",
+  "negatives_judged": 50,
+  "negatives": {
+    "unsupported": 50
+  },
+  "positives": {
+    "supported": 50
+  },
+  "specificity (negatives called unsupported)": 1.0,
+  "sensitivity (real claims called supported)": 1.0,
+  "balanced_accuracy": 1.0
+}
