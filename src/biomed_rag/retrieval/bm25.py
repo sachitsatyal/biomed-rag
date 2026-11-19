@@ -2,24 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from rank_bm25 import BM25Okapi
 
+from biomed_rag.retrieval.base import SearchResult
 from biomed_rag.retrieval.tokenizer import tokenize
-
-
-@dataclass
-class SearchResult:
-    """One retrieved chunk with its relevance score."""
-
-    chunk_id: str
-    pmid: str
-    score: float
-    text: str
 
 
 class BM25Retriever:
