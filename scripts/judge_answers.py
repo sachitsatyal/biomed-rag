@@ -32,9 +32,9 @@ def main() -> None:
 
     load_dotenv()
     from biomed_rag.evaluation.answer_metrics import cited_relevance, judge_claim
-    from biomed_rag.generation.llm import make_llm
+    from biomed_rag.generation.llm import RetryingLLM, make_llm
 
-    judge = make_llm(args.provider, args.judge_model, args.reasoning_effort)
+    judge = RetryingLLM(make_llm(args.provider, args.judge_model, args.reasoning_effort))
     labels = pd.read_csv(args.labels, dtype=str, encoding="utf-8-sig")
     relevant = labels[labels["relevant"] == "1"].groupby("qid")["pmid"].apply(set).to_dict()
     judged = labels.groupby("qid")["pmid"].apply(set).to_dict()

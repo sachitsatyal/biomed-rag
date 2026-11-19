@@ -29,9 +29,9 @@ def main() -> None:
 
     load_dotenv()
     from biomed_rag.evaluation.answer_metrics import judge_claim, make_negative_controls
-    from biomed_rag.generation.llm import make_llm
+    from biomed_rag.generation.llm import RetryingLLM, make_llm
 
-    judge = make_llm(args.provider, args.judge_model, args.reasoning_effort)
+    judge = RetryingLLM(make_llm(args.provider, args.judge_model, args.reasoning_effort))
     lines = Path(args.answers).read_text(encoding="utf-8").splitlines()
     answers = [json.loads(line) for line in lines if line.strip()]
     controls = make_negative_controls(answers, seed=args.seed)

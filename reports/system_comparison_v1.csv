@@ -1,0 +1,10 @@
+,rag,agent
+answered OK / total,30 / 30,30 / 30
+abstained on answerable (lower is better),0.125,0.0
+abstained on unanswerable (higher is better),1.0,1.0
+claims per answer,2.9166666666666665,3.5416666666666665
+passages used as evidence,8.0,11.433333333333334
+search rounds,1.0,1.6
+used live PubMed,0.0,0.36666666666666664
+tokens per question,1755.1333333333334,7260.733333333334
+seconds per question,1.8383333333333336,8.929
