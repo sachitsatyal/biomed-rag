@@ -40,21 +40,33 @@ PROVIDERS = {
 class OpenAICompatibleLLM:
     """Any OpenAI-compatible chat API: Gemini, Ollama, Groq, OpenAI and others."""
 
-    def __init__(self, model: str, base_url: str, api_key: str, client: Any = None) -> None:
+    def __init__(
+        self,
+        model: str,
+        base_url: str,
+        api_key: str,
+        client: Any = None,
+        reasoning_effort: str | None = None,
+        timeout: float = 90.0,
+    ) -> None:
         if client is None:
             from openai import OpenAI  # imported here so tests never need the SDK
 
-            client = OpenAI(base_url=base_url, api_key=api_key)
+            # Fail fast: a hung request errors after `timeout` seconds instead of ten minutes.
+            client = OpenAI(base_url=base_url, api_key=api_key, timeout=timeout, max_retries=2)
         self.client = client
         self.model = model
+        self.reasoning_effort = reasoning_effort
 
     def complete(self, system: str, user: str) -> LLMReply:
+        extra = {"reasoning_effort": self.reasoning_effort} if self.reasoning_effort else {}
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
+            **extra,
         )
         usage = response.usage
         return LLMReply(
@@ -85,7 +97,7 @@ class AnthropicLLM:
         return LLMReply(text, response.usage.input_tokens, response.usage.output_tokens)
 
 
-def make_llm(provider: str, model: str | None = None) -> LLM:
+def make_llm(provider: str, model: str | None = None, reasoning_effort: str | None = None) -> LLM:
     """Build an LLM by provider name, e.g. make_llm("gemini") or make_llm("ollama")."""
     if provider == "anthropic":
         return AnthropicLLM(model or "claude-sonnet-5-5")
@@ -97,4 +109,6 @@ def make_llm(provider: str, model: str | None = None) -> LLM:
     api_key = os.environ.get(key_env, "") if key_env else "not-needed"
     if not api_key:
         raise ValueError(f"set {key_env} in your .env file")
-    return OpenAICompatibleLLM(model or preset["model"], preset["base_url"], api_key)
+    return OpenAICompatibleLLM(
+        model or preset["model"], preset["base_url"], api_key, reasoning_effort=reasoning_effort
+    )

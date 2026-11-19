@@ -14,6 +14,7 @@ def main() -> None:
     parser.add_argument("--provider", default="gemini", help="gemini, ollama or anthropic")
     parser.add_argument("--model", default=None, help="override the provider's default model")
     parser.add_argument("--k", type=int, default=8)
+    parser.add_argument("--reasoning-effort", default="low", help="none, low, medium or high")
     parser.add_argument("--index", default="data/indexes/dense_bge-small_abstract")
     args = parser.parse_args()
 
@@ -25,7 +26,7 @@ def main() -> None:
     from biomed_rag.generation.llm import make_llm
     from biomed_rag.retrieval.dense import DenseRetriever
 
-    llm = make_llm(args.provider, args.model)
+    llm = make_llm(args.provider, args.model, args.reasoning_effort)
     generator = AnswerGenerator(DenseRetriever.load(args.index), llm, k=args.k)
     result = generator.answer(args.question)
 

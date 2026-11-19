@@ -37,3 +37,13 @@ def test_missing_api_key_gives_a_clear_error(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     with pytest.raises(ValueError, match="GEMINI_API_KEY"):
         make_llm("gemini")
+
+
+def test_reasoning_effort_is_sent_only_when_set():
+    client = FakeChatClient()
+    OpenAICompatibleLLM("m", "http://x", "k", client=client).complete("S", "U")
+    assert "reasoning_effort" not in client.request
+    OpenAICompatibleLLM("m", "http://x", "k", client=client, reasoning_effort="low").complete(
+        "S", "U"
+    )
+    assert client.request["reasoning_effort"] == "low"
