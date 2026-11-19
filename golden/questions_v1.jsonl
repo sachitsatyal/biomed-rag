@@ -1,0 +1,24 @@
+{"qid": "q01", "type": "exact", "question": "What is the effect of lecanemab on amyloid and cognitive decline?"}
+{"qid": "q02", "type": "exact", "question": "How do TREM2 variants affect microglia and Alzheimer's risk?"}
+{"qid": "q03", "type": "exact", "question": "How does APOE e4 increase the risk of Alzheimer's disease?"}
+{"qid": "q04", "type": "exact", "question": "How accurate is plasma p-tau217 as a blood biomarker for Alzheimer's disease?"}
+{"qid": "q05", "type": "exact", "question": "What is ARIA and how common is it with anti-amyloid antibodies?"}
+{"qid": "q06", "type": "exact", "question": "What did the donanemab trials show?"}
+{"qid": "q07", "type": "exact", "question": "How well do donepezil and other cholinesterase inhibitors work in Alzheimer's disease?"}
+{"qid": "q08", "type": "exact", "question": "What does tau PET imaging reveal about disease progression?"}
+{"qid": "q09", "type": "paraphrase", "question": "Which receptor on the brain's immune cells, when mutated, raises dementia risk?"}
+{"qid": "q10", "type": "paraphrase", "question": "Can poor sleep make toxic proteins build up in the brain?"}
+{"qid": "q11", "type": "paraphrase", "question": "Does the brain's waste-clearance system fail in dementia?"}
+{"qid": "q12", "type": "paraphrase", "question": "Is Alzheimer's a kind of diabetes of the brain?"}
+{"qid": "q13", "type": "paraphrase", "question": "Do bacteria living in the gut influence memory loss in old age?"}
+{"qid": "q14", "type": "paraphrase", "question": "Does physical activity protect older adults from losing their memory?"}
+{"qid": "q15", "type": "paraphrase", "question": "Can computers spot early dementia from brain scans?"}
+{"qid": "q16", "type": "paraphrase", "question": "How does looking after a relative with dementia affect the carer?"}
+{"qid": "q17", "type": "contested", "question": "Do antibodies that remove amyloid actually slow cognitive decline?"}
+{"qid": "q18", "type": "contested", "question": "Is the amyloid cascade hypothesis still valid?"}
+{"qid": "q19", "type": "contested", "question": "Was the approval of aducanumab justified by the evidence?"}
+{"qid": "q20", "type": "contested", "question": "Do results in Alzheimer's mouse models translate to human patients?"}
+{"qid": "q21", "type": "contested", "question": "Is neuroinflammation a cause or a consequence of Alzheimer's disease?"}
+{"qid": "q22", "type": "contested", "question": "Does treating hypertension lower the risk of dementia?"}
+{"qid": "q23", "type": "contested", "question": "Can lifestyle interventions prevent cognitive decline?"}
+{"qid": "q24", "type": "contested", "question": "Is hearing loss a modifiable risk factor for dementia?"}
