@@ -14,7 +14,8 @@ def main() -> None:
     parser.add_argument("--provider", default="gemini")
     parser.add_argument("--model", default="gemini-3.1-flash-lite")
     parser.add_argument("--reasoning-effort", default="low")
-    parser.add_argument("--max-rounds", type=int, default=2)
+    parser.add_argument("--max-rounds", type=int, default=3)
+    parser.add_argument("--no-live", action="store_true", help="disable the live PubMed tool")
     parser.add_argument("--index", default="data/indexes/dense_bge-small_abstract")
     args = parser.parse_args()
 
@@ -23,11 +24,19 @@ def main() -> None:
     load_dotenv()
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     from biomed_rag.agent.graph import build_agent, run_agent
+    from biomed_rag.data.pubmed import PubMedClient
     from biomed_rag.generation.llm import RetryingLLM, make_llm
     from biomed_rag.retrieval.dense import DenseRetriever
+    from biomed_rag.retrieval.pubmed_live import PubMedLiveRetriever
 
     llm = RetryingLLM(make_llm(args.provider, args.model, args.reasoning_effort))
-    agent = build_agent(DenseRetriever.load(args.index), llm, max_rounds=args.max_rounds)
+    live = None
+    if not args.no_live:
+        client = PubMedClient(os.environ["NCBI_API_KEY"], os.environ["NCBI_EMAIL"])
+        live = PubMedLiveRetriever(client)
+    agent = build_agent(
+        DenseRetriever.load(args.index), llm, live_retriever=live, max_rounds=args.max_rounds
+    )
 
     start = time.perf_counter()
     state = run_agent(agent, args.question)
