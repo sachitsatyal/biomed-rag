@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from biomed_rag.generation.llm import OpenAICompatibleLLM, make_llm
+from biomed_rag.generation.llm import LLMReply, OpenAICompatibleLLM, make_llm
 
 
 class FakeChatClient:
@@ -47,3 +47,47 @@ def test_reasoning_effort_is_sent_only_when_set():
         "S", "U"
     )
     assert client.request["reasoning_effort"] == "low"
+
+
+class RateLimitError(Exception):
+    """Same class name as the SDK's, which is what RetryingLLM checks."""
+
+
+class FlakyLLM:
+    model = "flaky"
+
+    def __init__(self, failures: int, error: type[Exception] = RateLimitError) -> None:
+        self.failures = failures
+        self.error = error
+
+    def complete(self, system, user):
+        if self.failures:
+            self.failures -= 1
+            raise self.error("busy")
+        return LLMReply("ok")
+
+
+def test_retrying_llm_waits_longer_each_time_then_succeeds():
+    from biomed_rag.generation.llm import RetryingLLM
+
+    waits = []
+    llm = RetryingLLM(FlakyLLM(failures=2), base_delay=10, sleep=waits.append)
+    assert llm.complete("S", "U").text == "ok"
+    assert llm.retries == 2 and 10 <= waits[0] < waits[1]
+    assert llm.model == "flaky"
+
+
+def test_retrying_llm_does_not_retry_real_bugs():
+    from biomed_rag.generation.llm import RetryingLLM
+
+    llm = RetryingLLM(FlakyLLM(failures=1, error=ValueError), sleep=lambda s: None)
+    with pytest.raises(ValueError):
+        llm.complete("S", "U")
+
+
+def test_retrying_llm_gives_up_after_max_attempts():
+    from biomed_rag.generation.llm import RetryingLLM
+
+    llm = RetryingLLM(FlakyLLM(failures=9), max_attempts=3, sleep=lambda s: None)
+    with pytest.raises(RateLimitError):
+        llm.complete("S", "U")
