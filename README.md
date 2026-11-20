@@ -9,7 +9,8 @@ evaluation.
 ## Architecture
 
 PubMed (NCBI E-utilities) → parsing → chunking → BM25 + dense (FAISS) retrieval → reranker →
-LLM answer with citations → LangGraph agent (planned) → FastAPI service (planned)
+LLM answer with citations → LangGraph agent (corpus + live PubMed tools) → FastAPI service
+(planned)
 
 ## Retrieval results
 
@@ -28,10 +29,34 @@ relevance labels v3 (521 judged papers, every system fully judged at depth 10). 
   reranker improved all three, most on paraphrased questions (Recall@10 0.589 → 0.680).
 - MedCPT costs about 10 s per query on CPU, so the default pipeline uses dense retrieval and
   MedCPT is optional until it runs on a GPU or a smaller candidate pool.
-- Caveats: 24 questions is small (significance testing pending); labels were made by an LLM
-  from titles and abstracts, with a human spot-check pending. Details in `golden/README.md`.
 
-Reproduce: `uv run python scripts/evaluate_retrieval.py --reranker ncbi/MedCPT-Cross-Encoder`
+## Answer and agent results
+
+30 questions (24 golden + 6 unanswerable traps: fictional drugs and genes, false premises,
+future events). Same answer model for both systems (`gemini-3.1-flash-lite`), so the only
+difference is the agent. Claims judged by `gemini-3.5-flash-lite`, validated with 70 negative
+controls (balanced accuracy 0.993).
+
+| | Plain RAG | Agent |
+| --- | --- | --- |
+| Gave up on answerable questions | 12.5% | **0%** |
+| Declined unanswerable traps | 100% | 100% |
+| Claims judged supported | 100% | 99% |
+| Cited papers labeled relevant | 0.822 | **0.854** |
+| … on contested questions | 0.852 | **0.929** |
+| Invalid or uncited citations | 0 | 0 |
+| Search rounds / used live PubMed | 1 / 0% | 1.6 / 37% |
+| Tokens / seconds per question | 1.8k / 1.8 s | 7.3k / 8.9 s |
+
+- The agent plans 2-3 queries (one deliberately seeking contradicting evidence), grades whether
+  the evidence covers both sides, and chooses between the local corpus and live PubMed.
+- It answered every answerable question (RAG gave up on 3) while still declining all 6 traps,
+  at about 4x the cost and latency.
+- Every citation is checked in code: a cited PMID must be in the retrieved evidence.
+
+**Caveats:** small question sets; relevance labels were made by an LLM (human spot-check
+pending, see `golden/README.md`); 30 agent citations (mostly live PubMed) are not yet labeled;
+judge and answerer come from the same model family; significance testing pending.
 
 ## Roadmap
 
@@ -40,10 +65,10 @@ Reproduce: `uv run python scripts/evaluate_retrieval.py --reranker ncbi/MedCPT-C
 - [x] BM25, dense and hybrid retrieval
 - [x] Golden set + retrieval evaluation (Recall@K, MRR)
 - [x] Reranking (general vs. biomedical cross-encoder)
-- [ ] Cited answer generation with abstention
-- [ ] LangGraph agent with tools + agent evaluation
-- [ ] Conflict-aware answering (research track)
+- [x] Cited answer generation with abstention
+- [x] LangGraph agent with tools + agent evaluation
 - [ ] FastAPI service + Docker
+- [ ] Conflict-aware answering (research track)
 - [ ] Cloud deployment + monitoring
 
 ## Quick start
@@ -58,10 +83,11 @@ uv run pytest
 Data and indexes are rebuilt locally (they are not stored in Git):
 
 ```bash
-cp .env.example .env   # add your NCBI API key and email
+cp .env.example .env   # add your NCBI and Gemini API keys
 uv run python scripts/download_pubmed.py
 uv run python scripts/build_chunks.py
 uv run python scripts/build_dense_index.py
+uv run python scripts/ask_agent.py "Do anti-amyloid antibodies slow cognitive decline?"
 ```
 
 ## License
