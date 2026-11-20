@@ -1,0 +1,8 @@
+# Allowlist: send Docker only what the image needs (keeps .env, .venv and data out).
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!data/indexes/dense_bge-small_abstract/
+**/__pycache__
