@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
+from biomed_rag.serving.monitoring import Monitor, RequestRecord, question_hash, setup_logging
 from biomed_rag.serving.service import AskRequest, AskResponse, answer_question, load_components
 
 logger = logging.getLogger("biomed_rag.api")
@@ -17,6 +19,7 @@ INDEX_HTML = Path(__file__).parent / "static" / "index.html"
 
 def create_app(load=load_components) -> FastAPI:
     """Build the app. `load` builds the pipeline; tests pass a fake one."""
+    setup_logging()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -30,6 +33,7 @@ def create_app(load=load_components) -> FastAPI:
         "not for clinical use).",
         lifespan=lifespan,
     )
+    app.state.monitor = Monitor()
 
     @app.get("/", include_in_schema=False)
     def home() -> FileResponse:
@@ -39,15 +43,40 @@ def create_app(load=load_components) -> FastAPI:
     def health() -> dict:
         return {"status": "ok", "model": app.state.components.model}
 
+    @app.get("/stats")
+    def stats() -> dict:
+        """Rolling usage stats since the last restart (latency, errors, abstentions)."""
+        return app.state.monitor.stats()
+
     @app.post("/ask", response_model=AskResponse)
     def ask(request: AskRequest) -> AskResponse:
+        start = time.perf_counter()
+        base = {
+            "mode": request.mode,
+            "question_chars": len(request.question),
+            "question_hash": question_hash(request.question),
+        }
         try:
-            return answer_question(app.state.components, request)
+            response = answer_question(app.state.components, request)
         except Exception as error:
             logger.exception("answering failed")
+            seconds = round(time.perf_counter() - start, 2)
+            app.state.monitor.record(
+                RequestRecord(**base, seconds=seconds, error=type(error).__name__)
+            )
             raise HTTPException(
                 status_code=503, detail=f"answering failed: {type(error).__name__}"
             ) from error
+        app.state.monitor.record(
+            RequestRecord(
+                **base,
+                seconds=response.seconds,
+                tokens=response.tokens,
+                abstained=response.abstained,
+                used_live=any(e.source == "pubmed" for e in response.evidence),
+            )
+        )
+        return response
 
     return app
 

@@ -37,3 +37,14 @@ def test_home_page_is_served():
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "biomed-rag" in response.text
+
+
+def test_stats_count_answers_and_errors():
+    with client() as c:
+        c.post("/ask", json={"question": "Does lecanemab work?", "mode": "rag"})
+        c.post("/ask", json={"question": "please fail now", "mode": "rag"})
+        stats = c.get("/stats").json()
+    assert stats["requests_total"] == 2
+    assert stats["errors"] == 1
+    assert stats["recent_errors"] == ["RuntimeError"]
+    assert stats["by_mode"]["rag"] == 2
