@@ -4,13 +4,16 @@ Evidence-grounded research assistant for Alzheimer's disease literature: hybrid 
 (BM25 + dense), neural reranking, cited answers with abstention, an agentic layer, and rigorous
 evaluation.
 
+**Live demo:** https://huggingface.co/spaces/sawcheet/biomed-rag
+(API docs at https://sawcheet-biomed-rag.hf.space/docs)
+
 > **Status:** in active development. Research prototype, not for clinical use.
 
 ## Architecture
 
 PubMed (NCBI E-utilities) → parsing → chunking → BM25 + dense (FAISS) retrieval → reranker →
-LLM answer with citations → LangGraph agent (corpus + live PubMed tools) → FastAPI service
-(planned)
+LLM answer with citations → LangGraph agent (corpus + live PubMed tools) → FastAPI service +
+web page → Docker image → Hugging Face Spaces
 
 ## Retrieval results
 
@@ -67,9 +70,10 @@ judge and answerer come from the same model family; significance testing pending
 - [x] Reranking (general vs. biomedical cross-encoder)
 - [x] Cited answer generation with abstention
 - [x] LangGraph agent with tools + agent evaluation
-- [ ] FastAPI service + Docker
+- [x] FastAPI service + web UI + Docker
 - [ ] Conflict-aware answering (research track)
-- [ ] Cloud deployment + monitoring
+- [x] Cloud deployment (Hugging Face Spaces)
+- [ ] Monitoring
 
 ## Quick start
 
@@ -88,6 +92,26 @@ uv run python scripts/download_pubmed.py
 uv run python scripts/build_chunks.py
 uv run python scripts/build_dense_index.py
 uv run python scripts/ask_agent.py "Do anti-amyloid antibodies slow cognitive decline?"
+```
+
+## Run the web app
+
+```bash
+uv run uvicorn biomed_rag.serving.app:app --port 8000   # open http://localhost:8000
+```
+
+Or with Docker (keys are passed at run time, never baked into the image):
+
+```bash
+docker build -t biomed-rag .
+docker run --rm -p 8000:8000 --env-file .env biomed-rag
+```
+
+Deploy to a Hugging Face Space (needs a write token; set `GEMINI_API_KEY`, `NCBI_API_KEY` and
+`NCBI_EMAIL` as Space secrets):
+
+```bash
+uv run python scripts/deploy_hf_space.py --space <user>/biomed-rag
 ```
 
 ## License
