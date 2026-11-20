@@ -1,0 +1,15 @@
+{
+  "n_questions": 30,
+  "errors": 0,
+  "abstention_rate": 0.3,
+  "mean_claims": 2.3333333333333335,
+  "invalid_citation_total": 0,
+  "uncited_claim_total": 0,
+  "cited_relevant_rate": 0.8222222222222222,
+  "unlabeled_citation_total": 0,
+  "claims_supported": 1.0,
+  "claims_supported_or_partial": 1.0,
+  "mean_seconds_per_answer": 1.8383333333333336,
+  "judge_model": "gemini-3.5-flash-lite",
+  "labels": "golden/labels_v3.csv"
+}

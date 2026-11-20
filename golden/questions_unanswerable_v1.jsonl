@@ -1,0 +1,6 @@
+{"qid": "u01", "type": "unanswerable", "question": "What did the phase 3 trial of zelverimab show for Alzheimer's disease?", "note": "fictional drug"}
+{"qid": "u02", "type": "unanswerable", "question": "How does the ADRK7 gene variant raise Alzheimer's risk in Icelandic families?", "note": "fictional gene"}
+{"qid": "u03", "type": "unanswerable", "question": "Why did the FDA ban donepezil in 2019?", "note": "false premise: it was never banned"}
+{"qid": "u04", "type": "unanswerable", "question": "What were the 10-year results of the 2031 lecanemab prevention trial?", "note": "future event"}
+{"qid": "u05", "type": "unanswerable", "question": "What dose of tauroxinol cured Alzheimer's disease in humans?", "note": "fictional drug and false premise"}
+{"qid": "u06", "type": "unanswerable", "question": "Which blood type protects people from ever developing Alzheimer's disease?", "note": "false premise"}
