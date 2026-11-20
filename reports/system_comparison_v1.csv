@@ -8,3 +8,7 @@ search rounds,1.0,1.6
 used live PubMed,0.0,0.36666666666666664
 tokens per question,1755.1333333333334,7260.733333333334
 seconds per question,1.8383333333333336,8.929
+claims judged supported,1.0,0.9895833333333334
+cited papers labeled relevant,0.8222222222222222,0.8541666666666665
+invalid citations (total),0,0
+uncited claims (total),0,0
