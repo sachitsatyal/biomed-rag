@@ -29,3 +29,11 @@ def test_pipeline_failure_returns_503():
     with client() as c:
         response = c.post("/ask", json={"question": "please fail now", "mode": "rag"})
     assert response.status_code == 503
+
+
+def test_home_page_is_served():
+    with client() as c:
+        response = c.get("/")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "biomed-rag" in response.text

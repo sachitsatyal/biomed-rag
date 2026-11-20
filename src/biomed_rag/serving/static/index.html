@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>biomed-rag · Alzheimer's literature QA</title>
+  <style>
+    :root { --ink:#1f2933; --muted:#6b7280; --line:#e5e7eb; --accent:#2563eb; --bg:#f8fafc; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+           color:var(--ink); background:var(--bg); }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+    h1 { margin:0; font-size:1.6rem; }
+    .sub { color:var(--muted); margin:4px 0 24px; }
+    textarea { width:100%; min-height:90px; padding:12px; font:inherit; border:1px solid var(--line);
+               border-radius:8px; resize:vertical; background:#fff; }
+    .row { display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+    select, button { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--line); }
+    button { background:var(--accent); color:#fff; border:none; cursor:pointer; }
+    button:disabled { opacity:.5; cursor:wait; }
+    .examples button { background:#fff; color:var(--accent); border:1px solid var(--line);
+                       font-size:.85rem; padding:4px 10px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px 20px;
+            margin-top:20px; }
+    .card h2 { font-size:1rem; margin:0 0 10px; color:var(--muted); font-weight:600; }
+    .claim { margin:0 0 10px; }
+    .cite { font-size:.8rem; color:var(--accent); text-decoration:none; margin-left:2px; }
+    .evidence li { margin-bottom:6px; }
+    .tag { font-size:.75rem; color:var(--muted); border:1px solid var(--line); border-radius:4px;
+           padding:0 5px; margin-left:4px; }
+    .meta, .note { color:var(--muted); font-size:.85rem; }
+    .error { color:#b91c1c; }
+    pre { white-space:pre-wrap; font-size:.8rem; background:var(--bg); padding:10px; border-radius:6px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>biomed-rag</h1>
+  <p class="sub">Cited answers from Alzheimer's disease research abstracts. The agent also
+    searches for evidence that <em>disagrees</em>.</p>
+
+  <textarea id="question" maxlength="500"
+    placeholder="e.g. Do antibodies that remove amyloid actually slow cognitive decline?"></textarea>
+  <div class="row">
+    <select id="mode" aria-label="mode">
+      <option value="agent">Agent (multi-step, both sides)</option>
+      <option value="rag">Fast RAG (single search)</option>
+    </select>
+    <button id="ask">Ask</button>
+    <span id="status" class="meta"></span>
+  </div>
+  <div class="row examples" id="examples"></div>
+
+  <div id="output"></div>
+
+  <p class="note" style="margin-top:32px">Research prototype, not medical advice.
+    Answers can be wrong; always check the cited papers.
+    <a href="/docs">API docs</a> ·
+    <a href="https://github.com/sachitsatyal/biomed-rag">GitHub</a></p>
+</main>
+
+<script>
+const EXAMPLES = [
+  "Do antibodies that remove amyloid actually slow cognitive decline?",
+  "What is the role of TREM2 in microglia?",
+  "Is APOE4 linked to faster tau spread?",
+];
+const $ = (id) => document.getElementById(id);
+
+// Build elements with textContent only, so text from the model can never inject HTML.
+function el(tag, text, attrs = {}) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  return node;
+}
+
+for (const q of EXAMPLES) {
+  const b = el("button", q, { type: "button" });
+  b.onclick = () => { $("question").value = q; };
+  $("examples").append(b);
+}
+
+function render(data) {
+  const out = $("output");
+  out.replaceChildren();
+
+  const answer = el("div", undefined, { class: "card" });
+  answer.append(el("h2", "Answer"));
+  if (data.abstained) {
+    answer.append(el("p", "Not enough evidence to answer: " + (data.abstain_reason || "")));
+  }
+  for (const claim of data.claims) {
+    const p = el("p", claim.text, { class: "claim" });
+    for (const pmid of claim.pmids) {
+      p.append(el("a", `[${pmid}]`, { class: "cite", href: `#pmid-${pmid}` }));
+    }
+    answer.append(p);
+  }
+  answer.append(el("p", `${data.mode} · ${data.seconds}s · ${data.tokens} tokens`,
+                   { class: "meta" }));
+  out.append(answer);
+
+  if (data.evidence.length) {
+    const ev = el("div", undefined, { class: "card" });
+    ev.append(el("h2", "Cited papers"));
+    const ul = el("ul", undefined, { class: "evidence" });
+    for (const e of data.evidence) {
+      const li = el("li", undefined, { id: `pmid-${e.pmid}` });
+      li.append(el("a", e.title || `PMID ${e.pmid}`, { href: e.url, target: "_blank",
+                                                      rel: "noopener" }));
+      li.append(el("span", e.source === "pubmed" ? "live PubMed" : "corpus", { class: "tag" }));
+      ul.append(li);
+    }
+    ev.append(ul);
+    out.append(ev);
+  }
+
+  if (data.trace && data.trace.length) {
+    const tr = el("details", undefined, { class: "card" });
+    tr.append(el("summary", `How the agent worked (${data.trace.length} steps)`));
+    tr.append(el("pre", JSON.stringify(data.trace, null, 2)));
+    out.append(tr);
+  }
+}
+
+async function ask() {
+  const question = $("question").value.trim();
+  if (question.length < 5) { $("status").textContent = "Please type a longer question."; return; }
+  $("ask").disabled = true;
+  $("status").textContent = "Thinking… (agent mode takes ~10 s)";
+  $("output").replaceChildren();
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, mode: $("mode").value }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "invalid request");
+    render(data);
+    $("status").textContent = "";
+  } catch (err) {
+    $("status").replaceChildren(el("span", "Error: " + err.message, { class: "error" }));
+  } finally {
+    $("ask").disabled = false;
+  }
+}
+
+$("ask").onclick = ask;
+$("question").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) ask();
+});
+</script>
+</body>
+</html>
