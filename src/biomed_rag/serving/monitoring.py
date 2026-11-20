@@ -46,6 +46,7 @@ class Monitor:
     def __init__(self, window: int = 500, clock=time.time):
         self.records: deque[RequestRecord] = deque(maxlen=window)
         self.total = 0
+        self.rate_limited = 0  # requests refused with 429 (never reach the LLM)
         self.clock = clock
         self.started = clock()
 
@@ -61,6 +62,7 @@ class Monitor:
         return {
             "uptime_seconds": round(self.clock() - self.started),
             "requests_total": self.total,
+            "rate_limited": self.rate_limited,
             "window": len(records),
             "errors": len(records) - len(ok),
             "error_rate": round((len(records) - len(ok)) / len(records), 3) if records else 0.0,

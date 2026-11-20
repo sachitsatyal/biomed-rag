@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from serving_fakes import fake_components
 
 from biomed_rag.serving.app import create_app
+from biomed_rag.serving.rate_limit import RateLimiter
 
 
 def client() -> TestClient:
@@ -48,3 +49,17 @@ def test_stats_count_answers_and_errors():
     assert stats["errors"] == 1
     assert stats["recent_errors"] == ["RuntimeError"]
     assert stats["by_mode"]["rag"] == 2
+
+
+def test_rate_limit_returns_429_with_retry_after():
+    limiter = RateLimiter(per_minute=1, per_day=10, global_per_day=10)
+    body = {"question": "Does lecanemab work?", "mode": "rag"}
+    with TestClient(create_app(load=fake_components, limiter=limiter)) as c:
+        assert c.post("/ask", json=body).status_code == 200
+        response = c.post("/ask", json=body)
+        stats = c.get("/stats").json()
+    assert response.status_code == 429
+    assert "per minute" in response.json()["detail"]
+    assert int(response.headers["retry-after"]) > 0
+    assert stats["rate_limited"] == 1
+    assert stats["requests_total"] == 1  # the blocked request never reached the pipeline

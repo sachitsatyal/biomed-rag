@@ -3,22 +3,24 @@
 from __future__ import annotations
 
 import logging
+import math
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 
 from biomed_rag.serving.monitoring import Monitor, RequestRecord, question_hash, setup_logging
+from biomed_rag.serving.rate_limit import RateLimiter, client_id
 from biomed_rag.serving.service import AskRequest, AskResponse, answer_question, load_components
 
 logger = logging.getLogger("biomed_rag.api")
 INDEX_HTML = Path(__file__).parent / "static" / "index.html"
 
 
-def create_app(load=load_components) -> FastAPI:
-    """Build the app. `load` builds the pipeline; tests pass a fake one."""
+def create_app(load=load_components, limiter: RateLimiter | None = None) -> FastAPI:
+    """Build the app. `load` builds the pipeline; tests pass fakes and small limits."""
     setup_logging()
 
     @asynccontextmanager
@@ -34,6 +36,7 @@ def create_app(load=load_components) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.monitor = Monitor()
+    app.state.limiter = limiter or RateLimiter.from_env()
 
     @app.get("/", include_in_schema=False)
     def home() -> FileResponse:
@@ -49,7 +52,16 @@ def create_app(load=load_components) -> FastAPI:
         return app.state.monitor.stats()
 
     @app.post("/ask", response_model=AskResponse)
-    def ask(request: AskRequest) -> AskResponse:
+    def ask(request: AskRequest, http_request: Request) -> AskResponse:
+        blocked = app.state.limiter.check(client_id(http_request))
+        if blocked:
+            app.state.monitor.rate_limited += 1
+            retry = math.ceil(blocked.retry_after)
+            raise HTTPException(
+                status_code=429,
+                detail=f"{blocked.reason}, please try again in {retry} s",
+                headers={"Retry-After": str(retry)},
+            )
         start = time.perf_counter()
         base = {
             "mode": request.mode,
