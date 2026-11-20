@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 
 from biomed_rag.serving.service import AskRequest, AskResponse, answer_question, load_components
 
 logger = logging.getLogger("biomed_rag.api")
+INDEX_HTML = Path(__file__).parent / "static" / "index.html"
 
 
 def create_app(load=load_components) -> FastAPI:
@@ -27,6 +30,10 @@ def create_app(load=load_components) -> FastAPI:
         "not for clinical use).",
         lifespan=lifespan,
     )
+
+    @app.get("/", include_in_schema=False)
+    def home() -> FileResponse:
+        return FileResponse(INDEX_HTML)  # the web page; it calls /ask from the browser
 
     @app.get("/health")
     def health() -> dict:
